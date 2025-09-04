@@ -134,6 +134,10 @@ final class SheetIterator implements SheetIteratorInterface
     public function current(): Sheet
     {
         $escapedSheetName = $this->xmlReader->getAttribute(self::XML_ATTRIBUTE_TABLE_NAME);
+        if ($escapedSheetName === null) {
+
+            $escapedSheetName = "Sheet".($this->currentSheetIndex + 1);
+        }
         \assert(null !== $escapedSheetName);
         $sheetName = $this->escaper->unescape($escapedSheetName);
 

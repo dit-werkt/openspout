@@ -1,4 +1,4 @@
-DOCKER_PHP_EXEC := docker compose run php
+DOCKER_PHP_EXEC := docker compose run --rm --env PHP_CS_FIXER_IGNORE_ENV=1 -it php
 
 SRCS := $(shell find ./src ./tests -type f -not -path "*/resources/generated_*")
 
@@ -34,7 +34,6 @@ coverage/ok: vendor $(SRCS) Makefile phpunit.xml
 	($(DOCKER_PHP_EXEC) php \
 		-d zend.assertions=1 \
 		-d pcov.enabled=1 \
-		-d open_basedir="$(realpath .)" \
 		-d sys_temp_dir="$(realpath .)" \
 		vendor/bin/phpunit \
 		$(PHPUNIT_ARGS) \

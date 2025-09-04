@@ -226,7 +226,7 @@ final class SheetIterator implements SheetIteratorInterface
      */
     private function isSheetVisible(string $sheetStyleName): bool
     {
-        return $this->sheetsVisibility[$sheetStyleName] ??
-            true;
+        return $this->sheetsVisibility[$sheetStyleName]
+            ?? true;
     }
 }

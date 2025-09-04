@@ -23,7 +23,27 @@ use PHPUnit\Framework\TestCase;
  */
 final class ReaderTest extends TestCase
 {
-    public static function dataProviderForTestReadShouldThrowException(): array
+    #[DataProvider('provideReadShouldThrowExceptionCases')]
+    public function testReadShouldThrowException(string $filePath): void
+    {
+        $this->expectException(IOException::class);
+
+        // using @ to prevent warnings/errors from being displayed
+        @$this->getAllRowsForFile($filePath);
+    }
+
+    #[DataProvider('provideReadShouldThrowExceptionCases')]
+    public function testReadShouldThrowExceptionWithMergeCells(string $filePath): void
+    {
+        $options = new Options();
+        $options->SHOULD_LOAD_MERGE_CELLS = true;
+
+        $this->expectException(IOException::class);
+
+        $this->getAllRowsForFile($filePath, $options);
+    }
+
+    public static function provideReadShouldThrowExceptionCases(): iterable
     {
         return [
             ['/path/to/fake/file.xlsx'],
@@ -33,26 +53,7 @@ final class ReaderTest extends TestCase
         ];
     }
 
-    #[DataProvider('dataProviderForTestReadShouldThrowException')]
-    public function testReadShouldThrowException(string $filePath): void
-    {
-        $this->expectException(IOException::class);
-
-        // using @ to prevent warnings/errors from being displayed
-        @$this->getAllRowsForFile($filePath);
-    }
-
-    public static function dataProviderForTestReadForAllWorksheets(): array
-    {
-        return [
-            ['one_sheet_with_shared_strings.xlsx', 5, 5],
-            ['one_sheet_with_inline_strings.xlsx', 5, 5],
-            ['two_sheets_with_shared_strings.xlsx', 10, 5],
-            ['two_sheets_with_inline_strings.xlsx', 10, 5],
-        ];
-    }
-
-    #[DataProvider('dataProviderForTestReadForAllWorksheets')]
+    #[DataProvider('provideReadForAllWorksheetsCases')]
     public function testReadForAllWorksheets(string $resourceName, int $expectedNumOfRows, int $expectedNumOfCellsPerRow): void
     {
         $allRows = $this->getAllRowsForFile($resourceName);
@@ -63,7 +64,7 @@ final class ReaderTest extends TestCase
         }
     }
 
-    #[DataProvider('dataProviderForTestReadForAllWorksheets')]
+    #[DataProvider('provideReadForAllWorksheetsCases')]
     public function testReadForAllWorksheetsWithFileBasedCachingStrategy(string $resourceName, int $expectedNumOfRows, int $expectedNumOfCellsPerRow): void
     {
         $allRows = $this->getAllRowsForFile($resourceName, null, new CachingStrategyFactory(new MemoryLimit('1b')));
@@ -72,6 +73,16 @@ final class ReaderTest extends TestCase
         foreach ($allRows as $row) {
             self::assertCount($expectedNumOfCellsPerRow, $row, "There should be {$expectedNumOfCellsPerRow} cells for every row");
         }
+    }
+
+    public static function provideReadForAllWorksheetsCases(): iterable
+    {
+        return [
+            ['one_sheet_with_shared_strings.xlsx', 5, 5],
+            ['one_sheet_with_inline_strings.xlsx', 5, 5],
+            ['two_sheets_with_shared_strings.xlsx', 10, 5],
+            ['two_sheets_with_inline_strings.xlsx', 10, 5],
+        ];
     }
 
     public function testReadShouldSupportInlineStringsWithMultipleValueNodes(): void
